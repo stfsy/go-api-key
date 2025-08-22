@@ -10,12 +10,12 @@ import (
 const (
 	defaultShortTokenBytes = 8
 	defaultLongTokenBytes  = 64
-	defaultTokenSeparator  = "#"
+	defaultTokenSeparator  = '#'
 )
 
 type ApiKeyGeneratorOptions struct {
 	TokenPrefix         string
-	TokenSeparator      string
+	TokenSeparator      rune // now a rune, not a string
 	TokenIdGenerator    RandomBytesGenerator
 	TokenBytesGenerator RandomBytesGenerator
 	TokenHasher         Hasher
@@ -25,7 +25,7 @@ type ApiKeyGeneratorOptions struct {
 
 type APIKeyGenerator struct {
 	tokenPrefix         string
-	tokenSeparator      string
+	tokenSeparator      rune
 	tokenIdGenerator    RandomBytesGenerator
 	tokenBytesGenerator RandomBytesGenerator
 	tokenHasher         Hasher
@@ -76,7 +76,7 @@ func NewApiKeyGenerator(opts ApiKeyGeneratorOptions) (*APIKeyGenerator, error) {
 		longTokenBytes = defaultLongTokenBytes
 	}
 	tokenSeparator := opts.TokenSeparator
-	if tokenSeparator == "" {
+	if tokenSeparator == 0 {
 		tokenSeparator = defaultTokenSeparator
 	}
 	return &APIKeyGenerator{
@@ -100,7 +100,8 @@ func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate long token: %v", err)
 	}
-	token := fmt.Sprintf("%s%s%s%s%s", a.tokenPrefix, a.tokenSeparator, shortToken, a.tokenSeparator, longToken)
+	sep := string(a.tokenSeparator)
+	token := fmt.Sprintf("%s%s%s%s%s", a.tokenPrefix, sep, shortToken, sep, longToken)
 	hash, err := a.tokenHasher.Hash(longToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash long token: %v", err)
@@ -115,7 +116,7 @@ func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
 
 // ExtractShortToken extracts the short token from a full API key string.
 func (a *APIKeyGenerator) ExtractShortToken(token string) (string, error) {
-	parts := strings.Split(token, a.tokenSeparator)
+	parts := strings.Split(token, string(a.tokenSeparator))
 	if len(parts) != 3 {
 		return "", fmt.Errorf("invalid token format")
 	}
@@ -124,7 +125,7 @@ func (a *APIKeyGenerator) ExtractShortToken(token string) (string, error) {
 
 // ExtractLongToken extracts the long token from a full API key string.
 func (a *APIKeyGenerator) ExtractLongToken(token string) (string, error) {
-	parts := strings.Split(token, a.tokenSeparator)
+	parts := strings.Split(token, string(a.tokenSeparator))
 	if len(parts) != 3 {
 		return "", fmt.Errorf("invalid token format")
 	}
@@ -133,7 +134,7 @@ func (a *APIKeyGenerator) ExtractLongToken(token string) (string, error) {
 
 // GetTokenComponents parses a full API key string into its components.
 func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
-	parts := strings.Split(token, a.tokenSeparator)
+	parts := strings.Split(token, string(a.tokenSeparator))
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("invalid token format")
 	}

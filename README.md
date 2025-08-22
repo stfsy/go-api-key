@@ -76,7 +76,7 @@ Create a new API key generator. All options are set via the `ApiKeyGeneratorOpti
 ```go
 type ApiKeyGeneratorOptions struct {
 	TokenPrefix         string // required, 1-8 chars, [a-zA-Z0-9_-], no separator
-	TokenSeparator      string // optional, defaults to "#"
+	TokenSeparator      rune   // optional, defaults to '#'
 	TokenIdGenerator    RandomBytesGenerator // optional, defaults to secure random
 	TokenBytesGenerator RandomBytesGenerator // optional, defaults to secure random
 	TokenHasher         Hasher               // optional, defaults to SHA256
