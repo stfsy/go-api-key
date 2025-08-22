@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/stfsy/go-api-key/compare/v1.0.0...v1.1.0) (2025-08-22)
+
+
+### Features
+
+* use argon2id as default hasher ([2d3d0ee](https://github.com/stfsy/go-api-key/commit/2d3d0eed95444c11ca302b7890077bebb8d6718c))
+
 ## 1.0.0 (2025-08-22)
 
 
