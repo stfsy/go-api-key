@@ -49,7 +49,8 @@ func NewApiKeyGenerator(opts ApiKeyGeneratorOptions) (*APIKeyGenerator, error) {
 	// Regex: only a-zA-Z0-9_- and must not contain the separator
 	validPrefix := `^[a-zA-Z0-9_-]{1,8}$`
 	matched, err := regexp.MatchString(validPrefix, opts.TokenPrefix)
-	if err == nil {
+	if err != nil {
+		return nil, fmt.Errorf("token prefix validation failed: %v", err)
 	}
 	if !matched {
 		return nil, fmt.Errorf("token prefix must match %s", validPrefix)
@@ -93,16 +94,16 @@ func NewApiKeyGenerator(opts ApiKeyGeneratorOptions) (*APIKeyGenerator, error) {
 func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
 	shortToken, err := a.tokenIdGenerator.Generate(a.shortTokenBytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate short token: %v", err)
 	}
 	longToken, err := a.tokenBytesGenerator.Generate(a.longTokenBytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate long token: %v", err)
 	}
 	token := fmt.Sprintf("%s%s%s%s%s", a.tokenPrefix, a.tokenSeparator, shortToken, a.tokenSeparator, longToken)
 	hash, err := a.tokenHasher.Hash(longToken)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to hash long token: %v", err)
 	}
 	return &APIKey{
 		ShortToken:    shortToken,
@@ -148,7 +149,7 @@ func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
 func (a *APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error) {
 	longToken, err := a.ExtractLongToken(token)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to extract long token: %v", err)
 	}
 	return a.tokenHasher.Verify(longToken, hash), nil
 }

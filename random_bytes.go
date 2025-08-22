@@ -3,6 +3,7 @@ package apikey
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 )
 
 // RandomBytesGenerator defines an interface for generating random IDs as a string.
@@ -17,7 +18,7 @@ func (d *DefaultRandomBytesGenerator) Generate(n int) (string, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read random bytes: %v", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
