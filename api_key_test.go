@@ -7,28 +7,28 @@ import (
 
 func TestNewApiKeyGeneratorValidation(t *testing.T) {
 	// Empty prefix
-	_, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: ""})
+	_, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: ""})
 	if err == nil {
 		t.Error("expected error for empty prefix")
 	}
 	// Too long prefix
-	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: "abcdefghijklmnopqrstuvwxyz1234567890"})
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "abcdefghijklmnopqrstuvwxyz1234567890"})
 	if err == nil {
 		t.Error("expected error for long prefix")
 	}
 	// Invalid char
-	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: "bad#prefix"})
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "bad#prefix"})
 	if err == nil {
 		t.Error("expected error for prefix with '#' char")
 	}
-	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: "bad!prefix"})
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "bad!prefix"})
 	if err == nil {
 		t.Error("expected error for prefix with invalid char")
 	}
 }
 
 func TestExtractShortAndLongTokenErrors(t *testing.T) {
-	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: "foo"})
+	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
 	// Not enough parts
 	_, err := gen.ExtractShortToken("a#b")
 	if err == nil {
@@ -41,7 +41,7 @@ func TestExtractShortAndLongTokenErrors(t *testing.T) {
 }
 
 func TestGetTokenComponentsError(t *testing.T) {
-	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: "foo"})
+	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
 	_, err := gen.GetTokenComponents("a#b")
 	if err == nil {
 		t.Error("expected error for bad token format in GetTokenComponents")
@@ -49,7 +49,7 @@ func TestGetTokenComponentsError(t *testing.T) {
 }
 
 func TestCheckAPIKeyError(t *testing.T) {
-	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: "foo"})
+	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
 	_, err := gen.CheckAPIKey("a#b", "hash")
 	if err == nil {
 		t.Error("expected error for bad token format in CheckAPIKey")
@@ -66,10 +66,11 @@ func (c *customHasher) Hash(s string) string { return "HASHED" + s }
 
 func TestNewApiKeyGeneratorWithFuncs(t *testing.T) {
 	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{
-		Prefix:            "pref",
-		RandomIdGenerator: &customGen{},
-		TokenHasher:       &customHasher{},
+		TokenPrefix:      "pref",
+		TokenIdGenerator: &customGen{},
+		TokenHasher:      &customHasher{},
 	})
+
 	if err != nil {
 		t.Fatalf("NewApiKeyGenerator failed: %v", err)
 	}
@@ -90,7 +91,7 @@ func TestNewApiKeyGeneratorWithFuncs(t *testing.T) {
 
 func TestGenerateAPIKey(t *testing.T) {
 	prefix := "mycorp"
-	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: prefix})
+	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: prefix})
 	if err != nil {
 		t.Fatalf("NewApiGenerator failed: %v", err)
 	}
@@ -116,7 +117,7 @@ func TestGenerateAPIKey(t *testing.T) {
 
 func TestExtractShortAndLongToken(t *testing.T) {
 	prefix := "test"
-	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: prefix})
+	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: prefix})
 	if err != nil {
 		t.Fatalf("NewApiGenerator failed: %v", err)
 	}
@@ -139,7 +140,7 @@ func TestExtractShortAndLongToken(t *testing.T) {
 
 func TestGetTokenComponents(t *testing.T) {
 	prefix := "abc"
-	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: prefix})
+	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: prefix})
 	if err != nil {
 		t.Fatalf("NewApiGenerator failed: %v", err)
 	}
@@ -155,7 +156,7 @@ func TestGetTokenComponents(t *testing.T) {
 
 func TestCheckAPIKey(t *testing.T) {
 	prefix := "foo"
-	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: prefix})
+	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: prefix})
 	if err != nil {
 		t.Fatalf("NewApiGenerator failed: %v", err)
 	}

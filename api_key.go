@@ -2,31 +2,36 @@
 package apikey
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
 )
 
+const (
+	defaultShortTokenBytes = 8
+	defaultLongTokenBytes  = 64
+	defaultTokenSeparator  = "#"
+)
+
 type ApiKeyGeneratorOptions struct {
-	Prefix            string
-	RandomIdGenerator RandomIdGenerator
-	TokenHasher       TokenHasher
+	TokenPrefix         string
+	TokenSeparator      string
+	TokenIdGenerator    RandomBytesGenerator
+	TokenBytesGenerator RandomBytesGenerator
+	TokenHasher         Hasher
+	ShortTokenBytes     int
+	LongTokenBytes      int
 }
 
 type APIKeyGenerator struct {
-	prefix      string
-	randomIds   RandomIdGenerator
-	tokenHasher TokenHasher
+	tokenPrefix         string
+	tokenSeparator      string
+	tokenIdGenerator    RandomBytesGenerator
+	tokenBytesGenerator RandomBytesGenerator
+	tokenHasher         Hasher
+	shortTokenBytes     int
+	longTokenBytes      int
 }
-
-const (
-	shortTokenBytes = 8
-	longTokenBytes  = 32
-	tokenSeparator  = "#"
-)
 
 // APIKey holds the components of a generated API key.
 type APIKey struct {
@@ -36,80 +41,65 @@ type APIKey struct {
 	Token         string
 }
 
-// RandomIdGenerator defines an interface for generating random IDs as a string.
-type RandomIdGenerator interface {
-	Generate(n int) (string, error)
-}
-
-// TokenHasher defines an interface for hashing a token string.
-type TokenHasher interface {
-	Hash(token string) string
-}
-
-// NewApiKeyGenerator creates a new APIKeyGenerator with default idGenerator and tokenHasher.
-
 // NewApiKeyGenerator creates a new APIKeyGenerator using options. Id generator and hasher are optional.
 func NewApiKeyGenerator(opts ApiKeyGeneratorOptions) (*APIKeyGenerator, error) {
-	if len(opts.Prefix) == 0 {
-		return nil, fmt.Errorf("prefix must be not be empty")
+	if len(opts.TokenPrefix) == 0 {
+		return nil, fmt.Errorf("token prefix must be not be empty")
 	}
 	// Regex: only a-zA-Z0-9_- and must not contain the separator
 	validPrefix := `^[a-zA-Z0-9_-]{1,8}$`
-	matched := false
-	if m, err := regexp.MatchString(validPrefix, opts.Prefix); err == nil {
-		matched = m
-	} else {
-		return nil, fmt.Errorf("internal error validating prefix: %v", err)
+	matched, err := regexp.MatchString(validPrefix, opts.TokenPrefix)
+	if err == nil {
 	}
 	if !matched {
-		return nil, fmt.Errorf("prefix must match %s", validPrefix)
+		return nil, fmt.Errorf("token prefix must match %s", validPrefix)
 	}
-	idGen := opts.RandomIdGenerator
-	if idGen == nil {
-		idGen = &DefaultRandomIdGenerator{}
+	tokenBytesGenerator := opts.TokenBytesGenerator
+	if tokenBytesGenerator == nil {
+		tokenBytesGenerator = &DefaultRandomBytesGenerator{}
+	}
+	tokenIdGenerator := opts.TokenIdGenerator
+	if tokenIdGenerator == nil {
+		tokenIdGenerator = &DefaultRandomBytesGenerator{}
 	}
 	hasher := opts.TokenHasher
 	if hasher == nil {
 		hasher = &Sha256Hasher{}
 	}
-	return &APIKeyGenerator{
-		prefix:      opts.Prefix,
-		randomIds:   idGen,
-		tokenHasher: hasher,
-	}, nil
-}
-
-// DefaultRandomIdGenerator implements RandomIdGenerator using crypto/rand and base64.
-type DefaultRandomIdGenerator struct{}
-
-func (d *DefaultRandomIdGenerator) Generate(n int) (string, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
+	shortTokenBytes := opts.ShortTokenBytes
+	if shortTokenBytes == 0 {
+		shortTokenBytes = defaultShortTokenBytes
 	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
-}
-
-// Sha256Hasher implements TokenHasher using SHA256.
-type Sha256Hasher struct{}
-
-func (d *Sha256Hasher) Hash(longToken string) string {
-	h := sha256.Sum256([]byte(longToken))
-	return fmt.Sprintf("%x", h[:])
+	longTokenBytes := opts.LongTokenBytes
+	if longTokenBytes == 0 {
+		longTokenBytes = defaultLongTokenBytes
+	}
+	tokenSeparator := opts.TokenSeparator
+	if tokenSeparator == "" {
+		tokenSeparator = defaultTokenSeparator
+	}
+	return &APIKeyGenerator{
+		tokenPrefix:         opts.TokenPrefix,
+		tokenBytesGenerator: tokenBytesGenerator,
+		tokenIdGenerator:    tokenIdGenerator,
+		tokenHasher:         hasher,
+		tokenSeparator:      tokenSeparator,
+		shortTokenBytes:     shortTokenBytes,
+		longTokenBytes:      longTokenBytes,
+	}, nil
 }
 
 // GenerateAPIKey generates a new API key using the generator's prefix.
 func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
-	shortToken, err := a.randomIds.Generate(shortTokenBytes)
+	shortToken, err := a.tokenIdGenerator.Generate(a.shortTokenBytes)
 	if err != nil {
 		return nil, err
 	}
-	longToken, err := a.randomBase64(longTokenBytes)
+	longToken, err := a.tokenBytesGenerator.Generate(a.longTokenBytes)
 	if err != nil {
 		return nil, err
 	}
-	token := fmt.Sprintf("%s%s%s%s%s", a.prefix, tokenSeparator, shortToken, tokenSeparator, longToken)
+	token := fmt.Sprintf("%s%s%s%s%s", a.tokenPrefix, a.tokenSeparator, shortToken, a.tokenSeparator, longToken)
 	hash := a.tokenHasher.Hash(longToken)
 	return &APIKey{
 		ShortToken:    shortToken,
@@ -119,19 +109,9 @@ func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
 	}, nil
 }
 
-// randomBase64 returns a URL-safe base64 string of n random bytes, without padding.
-func (a *APIKeyGenerator) randomBase64(n int) (string, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
-}
-
 // ExtractShortToken extracts the short token from a full API key string.
 func (a *APIKeyGenerator) ExtractShortToken(token string) (string, error) {
-	parts := strings.Split(token, tokenSeparator)
+	parts := strings.Split(token, a.tokenSeparator)
 	if len(parts) != 3 {
 		return "", fmt.Errorf("invalid token format")
 	}
@@ -140,7 +120,7 @@ func (a *APIKeyGenerator) ExtractShortToken(token string) (string, error) {
 
 // ExtractLongToken extracts the long token from a full API key string.
 func (a *APIKeyGenerator) ExtractLongToken(token string) (string, error) {
-	parts := strings.Split(token, tokenSeparator)
+	parts := strings.Split(token, a.tokenSeparator)
 	if len(parts) != 3 {
 		return "", fmt.Errorf("invalid token format")
 	}
@@ -149,7 +129,7 @@ func (a *APIKeyGenerator) ExtractLongToken(token string) (string, error) {
 
 // GetTokenComponents parses a full API key string into its components.
 func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
-	parts := strings.Split(token, tokenSeparator)
+	parts := strings.Split(token, a.tokenSeparator)
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("invalid token format")
 	}

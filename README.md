@@ -27,7 +27,11 @@ import (
 func main() {
 	// Create a generator with default secure random and SHA256 hasher
 	gen, err := apikey.NewApiKeyGenerator(apikey.ApiKeyGeneratorOptions{
-		Prefix: "mycorp",
+		TokenPrefix: "mycorp",
+		// Optionally:
+		// TokenIdGenerator:    &apikey.DefaultRandomBytesGenerator{},
+		// TokenBytesGenerator: &apikey.DefaultRandomBytesGenerator{},
+		// TokenHasher:         &apikey.Sha256Hasher{},
 	})
 	if err != nil {
 		panic(err)
@@ -54,9 +58,9 @@ func main() {
 
 ## Notes
 
-- The prefix must be 1-32 characters, using only `[a-zA-Z0-9_-]` and must not contain the separator (`#`).
+- The token prefix must be 1-8 characters, using only `[a-zA-Z0-9_-]` and must not contain the separator (`#`).
 - The default separator is `#`.
-- You can provide your own implementations of `RandomIdGenerator` and `TokenHasher` for custom behavior/testing.
+- You can provide your own implementations of `RandomBytesGenerator` and `Hasher` for custom behavior/testing.
 
 ## API Overview
 
@@ -72,27 +76,32 @@ Create a new API key generator. All options are set via the `ApiKeyGeneratorOpti
 
 ```go
 type ApiKeyGeneratorOptions struct {
-	Prefix            string // required, 1-32 chars, [a-zA-Z0-9_-], no separator
-	RandomIdGenerator RandomIdGenerator // optional, defaults to secure random
-	TokenHasher       TokenHasher       // optional, defaults to SHA256
+	TokenPrefix         string // required, 1-8 chars, [a-zA-Z0-9_-], no separator
+	TokenSeparator      string // optional, defaults to "#"
+	TokenIdGenerator    RandomBytesGenerator // optional, defaults to secure random
+	TokenBytesGenerator RandomBytesGenerator // optional, defaults to secure random
+	TokenHasher         Hasher               // optional, defaults to SHA256
+	ShortTokenBytes     int                  // optional, defaults to 8
+	LongTokenBytes      int                  // optional, defaults to 64
 }
 ```
 
 ### Interfaces
 
-#### `RandomIdGenerator`
+
+#### `RandomBytesGenerator`
 
 ```go
-type RandomIdGenerator interface {
+type RandomBytesGenerator interface {
 	Generate(n int) (string, error)
 }
 ```
-Default: `DefaultRandomIdGenerator` (crypto/rand, base64 URL encoding)
+Default: `DefaultRandomBytesGenerator` (crypto/rand, base64 URL encoding)
 
-#### `TokenHasher`
+#### `Hasher`
 
 ```go
-type TokenHasher interface {
+type Hasher interface {
 	Hash(token string) string
 }
 ```
