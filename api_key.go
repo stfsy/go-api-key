@@ -64,7 +64,7 @@ func NewApiKeyGenerator(opts ApiKeyGeneratorOptions) (*APIKeyGenerator, error) {
 	}
 	hasher := opts.TokenHasher
 	if hasher == nil {
-		hasher = &Sha256Hasher{}
+		hasher = &Argon2IdHasher{}
 	}
 	shortTokenBytes := opts.ShortTokenBytes
 	if shortTokenBytes == 0 {
@@ -100,7 +100,10 @@ func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
 		return nil, err
 	}
 	token := fmt.Sprintf("%s%s%s%s%s", a.tokenPrefix, a.tokenSeparator, shortToken, a.tokenSeparator, longToken)
-	hash := a.tokenHasher.Hash(longToken)
+	hash, err := a.tokenHasher.Hash(longToken)
+	if err != nil {
+		return nil, err
+	}
 	return &APIKey{
 		ShortToken:    shortToken,
 		LongToken:     longToken,
@@ -133,12 +136,11 @@ func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("invalid token format")
 	}
-	hash := a.tokenHasher.Hash(parts[2])
+
 	return &APIKey{
-		ShortToken:    parts[1],
-		LongToken:     parts[2],
-		LongTokenHash: hash,
-		Token:         token,
+		ShortToken: parts[1],
+		LongToken:  parts[2],
+		Token:      token,
 	}, nil
 }
 
@@ -148,5 +150,5 @@ func (a *APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return a.tokenHasher.Hash(longToken) == hash, nil
+	return a.tokenHasher.Verify(longToken, hash), nil
 }

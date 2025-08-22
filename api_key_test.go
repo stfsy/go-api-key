@@ -62,7 +62,11 @@ func (c *customGen) Generate(n int) (string, error) { return "SHORT", nil }
 
 type customHasher struct{}
 
-func (c *customHasher) Hash(s string) string { return "HASHED" + s }
+func (c *customHasher) Hash(s string) (string, error) { return "HASHED" + s, nil }
+func (c *customHasher) Verify(token, hash string) bool {
+	h, _ := c.Hash(token)
+	return h == hash
+}
 
 func TestNewApiKeyGeneratorWithFuncs(t *testing.T) {
 	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{
@@ -84,7 +88,8 @@ func TestNewApiKeyGeneratorWithFuncs(t *testing.T) {
 	if key.LongToken == "SHORT" {
 		t.Errorf("long token should not use idGen")
 	}
-	if key.LongTokenHash != "HASHED"+key.LongToken {
+	expectedHash, _ := (&customHasher{}).Hash(key.LongToken)
+	if key.LongTokenHash != expectedHash {
 		t.Errorf("custom hasher not used: got %q", key.LongTokenHash)
 	}
 }
@@ -149,8 +154,11 @@ func TestGetTokenComponents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetTokenComponents failed: %v", err)
 	}
-	if parsed.ShortToken != key.ShortToken || parsed.LongToken != key.LongToken || parsed.LongTokenHash != key.LongTokenHash {
-		t.Error("parsed components do not match original")
+	if parsed.ShortToken != key.ShortToken {
+		t.Errorf("ShortToken mismatch: got %q, want %q", parsed.ShortToken, key.ShortToken)
+	}
+	if parsed.LongToken != key.LongToken {
+		t.Errorf("LongToken mismatch: got %q, want %q", parsed.LongToken, key.LongToken)
 	}
 }
 

@@ -25,13 +25,13 @@ import (
 )
 
 func main() {
-	// Create a generator with default secure random and SHA256 hasher
+	// Create a generator with default secure random and Argon2id hasher
 	gen, err := apikey.NewApiKeyGenerator(apikey.ApiKeyGeneratorOptions{
 		TokenPrefix: "mycorp",
 		// Optionally:
 		// TokenIdGenerator:    &apikey.DefaultRandomBytesGenerator{},
 		// TokenBytesGenerator: &apikey.DefaultRandomBytesGenerator{},
-		// TokenHasher:         &apikey.Sha256Hasher{},
+		// TokenHasher:         &apikey.Sha256Hasher{}, // or &apikey.Argon2IdHasher{}
 	})
 	if err != nil {
 		panic(err)
@@ -102,10 +102,11 @@ Default: `DefaultRandomBytesGenerator` (crypto/rand, base64 URL encoding)
 
 ```go
 type Hasher interface {
-	Hash(token string) string
+	Hash(token string) (string, error)
+	Verify(token, hash string) bool
 }
 ```
-Default: `Sha256Hasher` (SHA256 hex string)
+Default: `Argon2IdHasher` (Argon2id hash string). You can also use `Sha256Hasher` (SHA256 hex string).
 
 ### Methods
 
@@ -122,3 +123,16 @@ key, err := gen.GenerateAPIKey()
 #### `(*APIKeyGenerator) ExtractLongToken(token string) (string, error)`
 #### `(*APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error)`
 #### `(*APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error)`
+
+#### Hashing and Verifying tokens directly
+
+You can use a hasher directly:
+
+```go
+hasher := &apikey.Argon2IdHasher{}
+hash, err := hasher.Hash("sometoken")
+if err != nil {
+	panic(err)
+}
+ok := hasher.Verify("sometoken", hash)
+```
