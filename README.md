@@ -3,7 +3,6 @@
 This package provides a simple, extensible API key generator for Go, supporting custom random ID generators and token hashers.
 
 ## Features
-
 - Generate API keys with a customizable prefix, short token, and long token.
 - Use your own random ID generator and token hasher, or use the secure defaults.
 - Parse and validate API keys.
@@ -136,3 +135,6 @@ if err != nil {
 }
 ok := hasher.Verify("sometoken", hash)
 ```
+
+## Related Work
+- [seamapi/prefixed-api-key](https://github.com/seamapi/prefixed-api-key/tree/main) – inspiration and reference for prefixed API key design.
