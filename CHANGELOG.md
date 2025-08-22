@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/stfsy/go-api-key/compare/v1.1.0...v1.2.0) (2025-08-22)
+
+
+### Features
+
+* add constant time comparison ([357ee0c](https://github.com/stfsy/go-api-key/commit/357ee0c97698e687f367ab35eeff1a5ec3863fc2))
+* make separator a rune ([1ed0c28](https://github.com/stfsy/go-api-key/commit/1ed0c287f2870fd12e8987b617b2a9070f39b438))
+
 ## [1.1.0](https://github.com/stfsy/go-api-key/compare/v1.0.0...v1.1.0) (2025-08-22)
 
 
