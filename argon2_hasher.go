@@ -20,7 +20,7 @@ var params = &argon2id.Params{
 func (d *Argon2IdHasher) Hash(longToken string) (string, error) {
 	hash, err := argon2id.CreateHash(longToken, params)
 	if err != nil {
-		return "", fmt.Errorf("argon2id.CreateHash failed: %v", err)
+		return "", fmt.Errorf("argon2id.CreateHash failed: %w", err)
 	}
 	return hash, nil
 }

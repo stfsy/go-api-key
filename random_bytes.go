@@ -18,7 +18,7 @@ func (d *DefaultRandomBytesGenerator) Generate(n int) (string, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", fmt.Errorf("failed to read random bytes: %v", err)
+		return "", fmt.Errorf("failed to read random bytes: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
