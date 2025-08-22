@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -49,16 +50,19 @@ type TokenHasher interface {
 
 // NewApiKeyGenerator creates a new APIKeyGenerator using options. Id generator and hasher are optional.
 func NewApiKeyGenerator(opts ApiKeyGeneratorOptions) (*APIKeyGenerator, error) {
-	if len(opts.Prefix) == 0 || len(opts.Prefix) > 32 {
-		return nil, fmt.Errorf("prefix must be 1-32 characters long")
+	if len(opts.Prefix) == 0 {
+		return nil, fmt.Errorf("prefix must be not be empty")
 	}
-	for _, c := range opts.Prefix {
-		if !(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-' || c == '_') {
-			return nil, fmt.Errorf("prefix contains invalid character: %q", c)
-		}
-		if string(c) == tokenSeparator {
-			return nil, fmt.Errorf("prefix cannot contain '%s' character", tokenSeparator)
-		}
+	// Regex: only a-zA-Z0-9_- and must not contain the separator
+	validPrefix := `^[a-zA-Z0-9_-]{1,8}$`
+	matched := false
+	if m, err := regexp.MatchString(validPrefix, opts.Prefix); err == nil {
+		matched = m
+	} else {
+		return nil, fmt.Errorf("internal error validating prefix: %v", err)
+	}
+	if !matched {
+		return nil, fmt.Errorf("prefix must match %s", validPrefix)
 	}
 	idGen := opts.RandomIdGenerator
 	if idGen == nil {

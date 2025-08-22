@@ -27,7 +27,7 @@ import (
 func main() {
 	// Create a generator with default secure random and SHA256 hasher
 	gen, err := apikey.NewApiKeyGenerator(apikey.ApiKeyGeneratorOptions{
-		Prefix: "mycompany",
+		Prefix: "mycorp",
 	})
 	if err != nil {
 		panic(err)

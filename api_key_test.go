@@ -89,7 +89,7 @@ func TestNewApiKeyGeneratorWithFuncs(t *testing.T) {
 }
 
 func TestGenerateAPIKey(t *testing.T) {
-	prefix := "mycompany"
+	prefix := "mycorp"
 	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{Prefix: prefix})
 	if err != nil {
 		t.Fatalf("NewApiGenerator failed: %v", err)
