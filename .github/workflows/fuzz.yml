@@ -1,0 +1,29 @@
+# Testing workflow
+name: fuzz
+
+# This GitHub action runs fuzz tests for each pull request and push.
+on:
+  push:
+
+concurrency:
+  group: go-api-key-fuzz
+
+# Testing only needs permissions to read the repository contents.
+permissions:
+  contents: read
+
+jobs:
+  # Ensure project builds before running testing matrix
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: sudo apt-get install -y libseccomp-dev pkg-config
+      - run: go mod download
+      - run: ./fuzz.sh
