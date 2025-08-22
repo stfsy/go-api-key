@@ -11,7 +11,7 @@ type Argon2IdHasher struct{}
 
 var params = &argon2id.Params{
 	Memory:      32 * 1024,
-	Iterations:  5,
+	Iterations:  6,
 	Parallelism: 1,
 	SaltLength:  16,
 	KeyLength:   64,
