@@ -2,6 +2,7 @@ package apikey
 
 import (
 	"crypto/sha256"
+	"crypto/subtle"
 	"fmt"
 )
 
@@ -24,5 +25,9 @@ func (d *Sha256Hasher) Verify(token, hash string) bool {
 	if err != nil {
 		return false
 	}
-	return h == hash
+	// Use constant-time comparison for security
+	if len(h) != len(hash) {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(h), []byte(hash)) == 1
 }
