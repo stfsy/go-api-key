@@ -1,0 +1,29 @@
+# Linting workflow
+name: lints
+
+# This GitHub action runs linting for each pull request and push.
+on:
+  push:
+
+# Testing only needs permissions to read the repository contents.
+permissions:
+  contents: read
+
+jobs:
+  # Ensure project builds before running testing matrix
+  app:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: sudo apt-get install -y libseccomp-dev pkg-config
+      - run: go mod download
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
