@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0](https://github.com/stfsy/go-api-key/compare/v1.1.0...v1.2.0) (2025-09-16)
+
+
+### Features
+
+* add constant time comparison ([357ee0c](https://github.com/stfsy/go-api-key/commit/357ee0c97698e687f367ab35eeff1a5ec3863fc2))
+* increase short token size ([cd535f6](https://github.com/stfsy/go-api-key/commit/cd535f6eb1dca2bf7ff3c53f9476b2cd2bdf2c00))
+* make separator a rune ([1ed0c28](https://github.com/stfsy/go-api-key/commit/1ed0c287f2870fd12e8987b617b2a9070f39b438))
+* validate token components ([bbbd77a](https://github.com/stfsy/go-api-key/commit/bbbd77a2b369b992fa4c1d44407a48a32cfa961d))
+
 ## [1.1.0](https://github.com/stfsy/go-api-key/compare/v1.0.0...v1.1.0) (2025-08-22)
 
 
