@@ -85,7 +85,7 @@ type ApiKeyGeneratorOptions struct {
 	TokenIdGenerator    RandomBytesGenerator // optional, defaults to secure random
 	TokenBytesGenerator RandomBytesGenerator // optional, defaults to secure random
 	TokenHasher         Hasher               // optional, defaults to SHA256
-	ShortTokenBytes     int                  // optional, defaults to 8
+	ShortTokenBytes     int                  // optional, defaults to 16
 	LongTokenBytes      int                  // optional, defaults to 64
 }
 ```

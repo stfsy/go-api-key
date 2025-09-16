@@ -1,6 +1,7 @@
 package apikey
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 )
@@ -114,6 +115,8 @@ func TestGetTokenComponents(t *testing.T) {
 		t.Fatalf("NewApiGenerator failed: %v", err)
 	}
 	key, _ := gen.GenerateAPIKey()
+	fmt.Println("Generated token:", key.Token)
+	fmt.Println("LongTokenHash:", key.LongTokenHash)
 	parsed, err := gen.GetTokenComponents(key.Token)
 	if err != nil {
 		t.Fatalf("GetTokenComponents failed: %v", err)
