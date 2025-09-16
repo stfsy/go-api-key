@@ -139,6 +139,13 @@ func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
 		return nil, fmt.Errorf("invalid token format")
 	}
 
+	// iterate over all parts and verify they are valid components
+	for _, part := range parts {
+		if !isValidTokenComponent(part) {
+			return nil, fmt.Errorf("invalid token component: %q", part)
+		}
+	}
+
 	return &APIKey{
 		ShortToken: parts[1],
 		LongToken:  parts[2],
@@ -147,6 +154,7 @@ func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
 }
 
 // CheckAPIKey verifies that the hash of the long token in the key matches the provided hash.
+// At this point we expect the token to be in valid format e.g. extract via GetTokenComponents.
 func (a *APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error) {
 	longToken, err := a.ExtractLongToken(token)
 	if err != nil {
