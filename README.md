@@ -121,18 +121,5 @@ key, err := gen.GenerateAPIKey()
 #### `(*APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error)`
 #### `(*APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error)`
 
-#### Hashing and Verifying tokens directly
-
-You can use a hasher directly:
-
-```go
-hasher := &apikey.Argon2IdHasher{}
-hash, err := hasher.Hash("sometoken")
-if err != nil {
-	panic(err)
-}
-ok := hasher.Verify("sometoken", hash)
-```
-
 ## Related Work
 - [seamapi/prefixed-api-key](https://github.com/seamapi/prefixed-api-key/tree/main) – inspiration and reference for prefixed API key design.
