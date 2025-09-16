@@ -27,19 +27,6 @@ func TestNewApiKeyGeneratorValidation(t *testing.T) {
 	}
 }
 
-func TestExtractShortAndLongTokenErrors(t *testing.T) {
-	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
-	// Not enough parts
-	_, err := gen.ExtractShortToken("a#b")
-	if err == nil {
-		t.Error("expected error for bad token format (short)")
-	}
-	_, err = gen.ExtractLongToken("a#b")
-	if err == nil {
-		t.Error("expected error for bad token format (long)")
-	}
-}
-
 func TestGetTokenComponentsError(t *testing.T) {
 	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
 	_, err := gen.GetTokenComponents("a#b")
@@ -117,29 +104,6 @@ func TestGenerateAPIKey(t *testing.T) {
 	re := regexp.MustCompile(`^[a-zA-Z0-9]+#[A-Za-z0-9\-_]+#[A-Za-z0-9\-_]+$`)
 	if !re.MatchString(key.Token) {
 		t.Errorf("token format invalid: %q", key.Token)
-	}
-}
-
-func TestExtractShortAndLongToken(t *testing.T) {
-	prefix := "test"
-	gen, err := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: prefix})
-	if err != nil {
-		t.Fatalf("NewApiGenerator failed: %v", err)
-	}
-	key, _ := gen.GenerateAPIKey()
-	short, err := gen.ExtractShortToken(key.Token)
-	if err != nil {
-		t.Fatalf("ExtractShortToken failed: %v", err)
-	}
-	if short != key.ShortToken {
-		t.Errorf("short token mismatch: got %q, want %q", short, key.ShortToken)
-	}
-	long, err := gen.ExtractLongToken(key.Token)
-	if err != nil {
-		t.Fatalf("ExtractLongToken failed: %v", err)
-	}
-	if long != key.LongToken {
-		t.Errorf("long token mismatch: got %q, want %q", long, key.LongToken)
 	}
 }
 

@@ -109,7 +109,7 @@ Default: `Argon2IdHasher` (Argon2id hash string). You can also use `Sha256Hasher
 
 ### Methods
 
-#### `(*APIKeyGenerator) GenerateAPIKey()`
+#### `(*APIKeyGenerator) GenerateAPIKey() (*APIKey, error)`
 
 Generate a new API key:
 
@@ -118,8 +118,6 @@ key, err := gen.GenerateAPIKey()
 // key.ShortToken, key.LongToken, key.LongTokenHash, key.Token
 ```
 
-#### `(*APIKeyGenerator) ExtractShortToken(token string) (string, error)`
-#### `(*APIKeyGenerator) ExtractLongToken(token string) (string, error)`
 #### `(*APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error)`
 #### `(*APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error)`
 

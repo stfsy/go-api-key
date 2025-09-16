@@ -114,24 +114,6 @@ func (a *APIKeyGenerator) GenerateAPIKey() (*APIKey, error) {
 	}, nil
 }
 
-// ExtractShortToken extracts the short token from a full API key string.
-func (a *APIKeyGenerator) ExtractShortToken(token string) (string, error) {
-	parts := strings.Split(token, string(a.tokenSeparator))
-	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid token format")
-	}
-	return parts[1], nil
-}
-
-// ExtractLongToken extracts the long token from a full API key string.
-func (a *APIKeyGenerator) ExtractLongToken(token string) (string, error) {
-	parts := strings.Split(token, string(a.tokenSeparator))
-	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid token format")
-	}
-	return parts[2], nil
-}
-
 // GetTokenComponents parses a full API key string into its components.
 func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
 	parts := strings.Split(token, string(a.tokenSeparator))
@@ -156,9 +138,9 @@ func (a *APIKeyGenerator) GetTokenComponents(token string) (*APIKey, error) {
 // CheckAPIKey verifies that the hash of the long token in the key matches the provided hash.
 // At this point we expect the token to be in valid format e.g. extract via GetTokenComponents.
 func (a *APIKeyGenerator) CheckAPIKey(token, hash string) (bool, error) {
-	longToken, err := a.ExtractLongToken(token)
+	components, err := a.GetTokenComponents(token)
 	if err != nil {
-		return false, fmt.Errorf("failed to extract long token: %w", err)
+		return false, fmt.Errorf("failed to parse token: %w", err)
 	}
-	return a.tokenHasher.Verify(longToken, hash), nil
+	return a.tokenHasher.Verify(components.LongToken, hash), nil
 }
