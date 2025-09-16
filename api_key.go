@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultShortTokenBytes = 8
+	defaultShortTokenBytes = 16
 	defaultLongTokenBytes  = 64
 	defaultTokenSeparator  = '#'
 )
