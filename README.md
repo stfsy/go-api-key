@@ -7,6 +7,11 @@ This package provides a simple, extensible API key generator for Go, supporting 
 - Use your own random ID generator and token hasher, or use the secure defaults.
 - Parse and validate API keys.
 
+## Usage
+- Use the library to create an API key. 
+- Store the `ShortToken` and the `LongTokenHash` in your database.
+- Send the `LongToken` to the user / client.
+
 ## Installation
 
 ```sh
@@ -56,10 +61,10 @@ func main() {
 ```
 
 ## Notes
-
 - The token prefix must be 1-8 characters, using only `[a-zA-Z0-9_-]` and must not contain the separator (`#`).
 - The default separator is `#`.
 - You can provide your own implementations of `RandomBytesGenerator` and `Hasher` for custom behavior/testing.
+
 
 ## API Overview
 
