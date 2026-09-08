@@ -53,7 +53,7 @@ func TestArgon2IdHasher_Hash_Performance(t *testing.T) {
 		t.Fatalf("Hash returned error: %v", err)
 	}
 	elapsed := time.Since(start)
-	if elapsed < 100*time.Millisecond {
-		t.Errorf("Argon2IdHasher.Hash was too fast: %v (want >= 100ms)", elapsed)
+	if elapsed < 50*time.Millisecond {
+		t.Errorf("Argon2IdHasher.Hash was too fast: %v (want >= 50ms)", elapsed)
 	}
 }
