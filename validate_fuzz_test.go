@@ -5,7 +5,7 @@ import "testing"
 func FuzzIsValidTokenComponent(f *testing.F) {
 	// Seed with valid and invalid examples
 	f.Add("abcABC123_-") // valid
-	f.Add("")            // valid (empty string)
+	f.Add("")            // invalid (empty string)
 	f.Add("abc def")     // invalid (space)
 	f.Add("abc.def")     // invalid (dot)
 	f.Add("abc😀def")     // invalid (emoji)

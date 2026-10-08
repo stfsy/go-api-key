@@ -9,7 +9,7 @@ func TestIsValidTokenComponent(t *testing.T) {
 		desc  string
 	}{
 		{"abcABC123_-", true, "all allowed chars"},
-		{"", true, "empty string (allowed)"},
+		{"", false, "empty string (not allowed)"},
 		{"a", true, "single allowed char"},
 		{"-_-_-_-_", true, "only dashes and underscores"},
 		{"abc def", false, "contains space"},
