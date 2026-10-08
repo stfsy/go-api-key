@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/stfsy/go-api-key/compare/v1.2.0...v1.3.0) (2026-10-08)
+
+
+### Features
+
+* **security:** enforce prefix validation, entropy limits, and memory zeroization ([de6d3a8](https://github.com/stfsy/go-api-key/commit/de6d3a888eae83bbe909c56c93502f5eb9185856))
+
+
+### Bug Fixes
+
+* **generator:** prevent delimiter collisions using chunked rejection sampling ([6d6960e](https://github.com/stfsy/go-api-key/commit/6d6960eb55789a646c0161b042c84a967f09e269))
+* **validation:** reject empty token components ([7d2e66a](https://github.com/stfsy/go-api-key/commit/7d2e66aa1d10a1d7fe813d29a7c70c1ebd08a398))
+
 ## [1.2.0](https://github.com/stfsy/go-api-key/compare/v1.1.0...v1.2.0) (2025-09-16)
 
 
