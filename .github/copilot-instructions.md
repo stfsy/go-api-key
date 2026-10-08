@@ -12,9 +12,9 @@
   - `Hasher` (see `token_hasher.go`, `argon2_hasher.go`): interface and implementations for hashing tokens (SHA256, Argon2id).
 
 ## Key Patterns & Conventions
-- API keys are structured as: `<prefix><sep><short><sep><long>`, e.g., `mycorp#short#long`.
-- Prefix: 1-8 chars, `[a-zA-Z0-9_-]`, must not contain the separator (default `#`).
-- Separator is a `rune` (not string), default `#`, configurable via options.
+- API keys are structured as: `<prefix><sep><short><sep><long>`, e.g., `mycorp_short_long`.
+- Prefix: 1-8 chars, `[a-zA-Z0-9_-]`, must not contain the separator (default `_`).
+- Separator is a `rune` (not string), default `_`, configurable via options.
 - All errors are wrapped with `%w` for unwrapping.
 - Custom generators/hashers can be injected via `ApiKeyGeneratorOptions`.
 - All exported methods return detailed errors for invalid input or failures.
