@@ -4,9 +4,9 @@ import "testing"
 
 func FuzzGetTokenComponents(f *testing.F) {
 	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "fuzz"})
-	f.Add("fuzz#short#long")
+	f.Add("fuzz_short_long")
 	f.Add("badtoken")
-	f.Add("fuzz#short")
+	f.Add("fuzz_short")
 	f.Fuzz(func(t *testing.T, token string) {
 		_, _ = gen.GetTokenComponents(token)
 	})
@@ -14,7 +14,7 @@ func FuzzGetTokenComponents(f *testing.F) {
 
 func FuzzCheckAPIKey(f *testing.F) {
 	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "fuzz"})
-	f.Add("fuzz#short#long", "hash")
+	f.Add("fuzz_short_long", "hash")
 	f.Add("badtoken", "hash")
 	f.Fuzz(func(t *testing.T, token, hash string) {
 		_, _ = gen.CheckAPIKey(token, hash)

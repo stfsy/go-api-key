@@ -1,8 +1,8 @@
 package apikey
 
 import (
-	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -17,36 +17,78 @@ func TestNewApiKeyGeneratorValidation(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for long prefix")
 	}
-	// Invalid char
-	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "bad#prefix"})
+	// Separator in prefix (default separator is '_')
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "bad_pre"})
 	if err == nil {
-		t.Error("expected error for prefix with '#' char")
+		t.Error("expected error for prefix containing default separator '_'")
 	}
+	// Custom separator in prefix
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "bad#pre", TokenSeparator: '#'})
+	if err == nil {
+		t.Error("expected error for prefix containing custom separator '#'")
+	}
+	// Invalid char
 	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "bad!prefix"})
 	if err == nil {
 		t.Error("expected error for prefix with invalid char")
+	}
+	// Short token bytes below minimum (8)
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "valid", ShortTokenBytes: 7})
+	if err == nil {
+		t.Error("expected error for short token bytes < 8")
+	}
+	// Long token bytes below minimum (32)
+	_, err = NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "valid", LongTokenBytes: 31})
+	if err == nil {
+		t.Error("expected error for long token bytes < 32")
 	}
 }
 
 func TestGetTokenComponentsError(t *testing.T) {
 	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
-	_, err := gen.GetTokenComponents("a#b")
+	// Bad part count
+	_, err := gen.GetTokenComponents("a_b")
 	if err == nil {
 		t.Error("expected error for bad token format in GetTokenComponents")
+	}
+	// Prefix mismatch
+	_, err = gen.GetTokenComponents("bar_shorttoken123_longtoken1234567890")
+	if err == nil {
+		t.Error("expected error for prefix mismatch in GetTokenComponents")
+	}
+	// Empty short token
+	_, err = gen.GetTokenComponents("foo__longtoken1234567890")
+	if err == nil {
+		t.Error("expected error for empty short token in GetTokenComponents")
+	}
+	// Empty long token
+	_, err = gen.GetTokenComponents("foo_shorttoken123_")
+	if err == nil {
+		t.Error("expected error for empty long token in GetTokenComponents")
+	}
+	// All empty components
+	_, err = gen.GetTokenComponents("__")
+	if err == nil {
+		t.Error("expected error for empty components in GetTokenComponents")
 	}
 }
 
 func TestCheckAPIKeyError(t *testing.T) {
 	gen, _ := NewApiKeyGenerator(ApiKeyGeneratorOptions{TokenPrefix: "foo"})
-	_, err := gen.CheckAPIKey("a#b", "hash")
+	_, err := gen.CheckAPIKey("a_b", "hash")
 	if err == nil {
 		t.Error("expected error for bad token format in CheckAPIKey")
+	}
+	// Prefix mismatch
+	_, err = gen.CheckAPIKey("bar_shorttoken123_longtoken1234567890", "hash")
+	if err == nil {
+		t.Error("expected error for prefix mismatch in CheckAPIKey")
 	}
 }
 
 type customGen struct{}
 
-func (c *customGen) Generate(n int) (string, error) { return "SHORT", nil }
+func (c *customGen) Generate(n int) (string, error) { return "SHORTTOKEN", nil }
 
 type customHasher struct{}
 
@@ -70,10 +112,10 @@ func TestNewApiKeyGeneratorWithFuncs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GenerateAPIKey failed: %v", err)
 	}
-	if key.ShortToken != "SHORT" {
+	if key.ShortToken != "SHORTTOKEN" {
 		t.Errorf("custom idGen not used for short token: got %q", key.ShortToken)
 	}
-	if key.LongToken == "SHORT" {
+	if key.LongToken == "SHORTTOKEN" {
 		t.Errorf("long token should not use idGen")
 	}
 	expectedHash, _ := (&customHasher{}).Hash(key.LongToken)
@@ -95,14 +137,14 @@ func TestGenerateAPIKey(t *testing.T) {
 	if key == nil {
 		t.Fatal("key is nil")
 	}
-	if key.ShortToken == "" || key.LongToken == "" || key.LongTokenHash == "" || key.Token == "" {
-		t.Error("one or more fields are empty")
+	if key.Prefix != prefix || key.ShortToken == "" || key.LongToken == "" || key.LongTokenHash == "" || key.Token == "" {
+		t.Error("one or more fields are empty or invalid")
 	}
 	if got, want := key.Token[:len(prefix)], prefix; got != want {
 		t.Errorf("prefix mismatch: got %q, want %q", got, want)
 	}
-	// Check format: prefix#short#long
-	re := regexp.MustCompile(`^[a-zA-Z0-9]+#[A-Za-z0-9\-_]+#[A-Za-z0-9\-_]+$`)
+	// Check format: prefix_short_long
+	re := regexp.MustCompile(`^[a-zA-Z0-9]+_[A-Za-z0-9\-_]+_[A-Za-z0-9\-_]+$`)
 	if !re.MatchString(key.Token) {
 		t.Errorf("token format invalid: %q", key.Token)
 	}
@@ -115,11 +157,12 @@ func TestGetTokenComponents(t *testing.T) {
 		t.Fatalf("NewApiGenerator failed: %v", err)
 	}
 	key, _ := gen.GenerateAPIKey()
-	fmt.Println("Generated token:", key.Token)
-	fmt.Println("LongTokenHash:", key.LongTokenHash)
 	parsed, err := gen.GetTokenComponents(key.Token)
 	if err != nil {
 		t.Fatalf("GetTokenComponents failed: %v", err)
+	}
+	if parsed.Prefix != prefix {
+		t.Errorf("Prefix mismatch: got %q, want %q", parsed.Prefix, prefix)
 	}
 	if parsed.ShortToken != key.ShortToken {
 		t.Errorf("ShortToken mismatch: got %q, want %q", parsed.ShortToken, key.ShortToken)
@@ -148,5 +191,26 @@ func TestCheckAPIKey(t *testing.T) {
 	ok, _ = gen.CheckAPIKey(key.Token, "beef")
 	if ok {
 		t.Error("CheckAPIKey returned true for invalid hash")
+	}
+}
+
+func TestAPIKeyStringRedaction(t *testing.T) {
+	key := &APIKey{
+		Prefix:        "mycorp",
+		ShortToken:    "abcdefgh1234",
+		LongToken:     "supersecretlongtokenthatmustneverbelogged",
+		LongTokenHash: "hashedsecret",
+		Token:         "mycorp_abcdefgh1234_supersecretlongtokenthatmustneverbelogged",
+	}
+
+	str := key.String()
+	if strings.Contains(str, key.LongToken) {
+		t.Errorf("APIKey.String() exposed plaintext secret: %s", str)
+	}
+	if !strings.Contains(str, "[REDACTED]") {
+		t.Errorf("APIKey.String() did not include redaction marker: %s", str)
+	}
+	if !strings.Contains(str, key.ShortToken) {
+		t.Errorf("APIKey.String() missing short token identifier: %s", str)
 	}
 }
