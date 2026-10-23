@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/stfsy/go-api-key/compare/v1.3.0...v1.3.1) (2026-10-23)
+
+
+### Miscellaneous Chores
+
+* standardize release-please and stale workflows ([7727cab](https://github.com/stfsy/go-api-key/commit/7727cabcbeca00aadc128ab3d421d177d1696741))
+* standardize release-please and stale workflows ([8526468](https://github.com/stfsy/go-api-key/commit/8526468d3440343c263ef7621686673ed5526af4))
+
 ## [1.3.0](https://github.com/stfsy/go-api-key/compare/v1.2.0...v1.3.0) (2026-10-08)
 
 
